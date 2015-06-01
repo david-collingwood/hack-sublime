@@ -20,13 +20,20 @@ class ShowTypecheckerCommand(sublime_plugin.WindowCommand):
             self.window.run_command("show_panel", {"panel": "output.textarea"})
             self.markErrorLines(typechecker_output)
 
-    def getOutput(self):
+    def useSSH(self):
         settings = self.window.active_view().settings()
-        directory = os.path.dirname(self.window.active_view().file_name())
         ssh = settings.get("hack_ssh_enable")
         address = settings.get("hack_ssh_address")
         folder = settings.get("hack_ssh_folder")
-        if (ssh and folder != None and address != None):
+
+        return ssh and folder != None and address != None
+
+    def getOutput(self):
+        settings = self.window.active_view().settings()
+        directory = os.path.dirname(self.window.active_view().file_name())
+        address = settings.get("hack_ssh_address")
+        folder = settings.get("hack_ssh_folder")
+        if self.useSSH():
             ret = subprocess.Popen(
                 [
                     "ssh", address, "cd " + folder + "; hh_client --from sublime"
@@ -60,8 +67,10 @@ class ShowTypecheckerCommand(sublime_plugin.WindowCommand):
             split = oline.split(',')
             filename = split[0][6:-1]
             line_number = split[1][6:]
-            view = self.findViewForFile(filename)
-            # view = self.window.find_open_file(filename)
+            if self.useSSH():
+                view = self.findViewForFile(filename)
+            else:
+                view = self.window.find_open_file(filename)
             if view == None:
                 # TODO: Sublime doesn't like symlinks
                 continue # file not open, don't highlight it
