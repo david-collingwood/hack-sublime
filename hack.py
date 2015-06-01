@@ -60,7 +60,8 @@ class ShowTypecheckerCommand(sublime_plugin.WindowCommand):
             split = oline.split(',')
             filename = split[0][6:-1]
             line_number = split[1][6:]
-            view = self.window.find_open_file(filename)
+            view = self.findViewForFile(filename)
+            # view = self.window.find_open_file(filename)
             if view == None:
                 # TODO: Sublime doesn't like symlinks
                 continue # file not open, don't highlight it
@@ -85,6 +86,20 @@ class ShowTypecheckerCommand(sublime_plugin.WindowCommand):
     def unmarkAll(self):
         for view in self.window.views():
             view.erase_regions('error')
+
+    def findViewForFile(self, file):
+        settings = self.window.active_view().settings()
+        ssh_folder = settings.get("hack_ssh_folder")
+        relative_file = file
+
+        if file.startswith(ssh_folder):
+            relative_file = file[len(ssh_folder):]
+
+        for view in self.window.views():
+            if view.file_name() and view.file_name().endswith(relative_file):
+                return view
+
+        return None
 
 
 
