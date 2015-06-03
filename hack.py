@@ -139,7 +139,7 @@ class onSaveListener(sublime_plugin.EventListener):
 class CompletionsListener(sublime_plugin.EventListener):
 
     def on_query_completions(self, view, prefix, locations):
-        view.settings()
+        settings = view.settings()
         ssh = settings.get("hack_ssh_enable")
         if ssh or not checkFileType(view):
             return [()] # default
